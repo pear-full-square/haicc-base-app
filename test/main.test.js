@@ -49,43 +49,27 @@ function answerAll (root, results) {
   return { all, commands, stop: () => clearInterval(t) }
 }
 
-test('a continuation: the response says what to go on with; each command sent after the response of the one before; the first that fails ends it', async (t) => {
+test('a continuation: the response says what to go on with, a script: sent on as haicc/script where it was answered for; its outcome printed', async (t) => {
   const s = setup()
   try {
     mkdirSync(join(s.root, 'inbox'), { recursive: true }); mkdirSync(join(s.root, 'outbox'), { recursive: true })
-    const script = { at: 'host', commands: [['service/initialise'], ['service/start'], ['crud/create', 'swarms/swarm-1', '{"size":3}']] }
-    let a = answerAll(s.root, [{ output: { deployed: 'host' }, continuation: script }, { output: { state: 'initialised' } }, { output: { state: 'started' } }, { output: [] }])
-    t.is(await s.run(['--output', '.', 'boot/deploy', 'host', 'base-component-haicc', '--flags', 'continuation=start']), 0, 'exit 0: every command done')
-    t.alike(await a.all, [['boot/deploy', 'host', 'base-component-haicc', '--flags', 'continuation=start'], ['haicc', 'host', 'service/initialise'], ['haicc', 'host', 'service/start'], ['haicc', 'host', 'crud/create', 'swarms/swarm-1', '{"size":3}']], 'the command, then the script\'s, in order, each sent from the position it is written at')
-    t.alike(s.out, ['{"deployed":"host"}', '{"state":"initialised"}', '{"state":"started"}', '[]'], '--output: each one\'s output, a line each')
+    const script = 'service/initialise\nservice/start\n'
+    let a = answerAll(s.root, [{ output: { deployed: 'host' }, continuation: { at: 'host', script } }, { output: [{ line: 'service/initialise' }, { line: 'service/start' }] }])
+    t.is(await s.run(['--output', '.', 'boot/deploy', 'host', 'base-component-haicc', '--flags', 'continuation=start']), 0, 'exit 0: the script done')
+    t.alike(await a.all, [['boot/deploy', 'host', 'base-component-haicc', '--flags', 'continuation=start'], ['haicc/script', 'host', script]], 'the command, then its script, one command to the root: haicc/script, its URI the position it was answered for')
+    t.alike(s.out, ['{"deployed":"host"}', '[{"line":"service/initialise"},{"line":"service/start"}]'], '--output: each one\'s output')
 
-    a = answerAll(s.root, [{ output: 1, continuation: { at: '.', commands: [['help/get']] } }, { output: 2 }])
-    t.is(await s.run(['.', 'x/y']), 0)
-    t.alike(await a.all, [['x/y'], ['help/get']], 'written at the root: sent plain')
-    t.ok(s.out.includes('haicc . help/get'), 'records printed for reading: each command said as it would be typed, before its response')
-
-    a = answerAll(s.root, [{ output: 1, continuation: script }, { output: 1 }, { error: 'not now: service start' }])
-    t.is(await s.run(['--output', '.', 'x/y']), 1, 'a command of the script fails: exit 1')
+    a = answerAll(s.root, [{ output: 1, continuation: { at: '.', script: 'x/y\n' } }, { error: 'line 1: x/y: no protocol' }])
+    t.is(await s.run(['--output', '.', 'a/b']), 1, 'the script fails: exit 1')
     await a.all
-    t.alike([a.commands.length, s.err], [3, ['haicc: not now: service start']], 'it ends there: the rest not sent; its error said')
-
-    a = answerAll(s.root, [{ output: 1, continuation: { at: '.', commands: [['a/b']] } }, { output: 2, continuation: { at: '.', commands: [['c/d']] } }])
-    t.is(await s.run(['--output', '.', 'x/y']), 0)
-    await a.all
-    await new Promise(resolve => setTimeout(resolve, 150))
-    t.is(a.commands.length, 2, 'a simple script: a continuation answered inside one is not run')
-
-    a = answerAll(s.root, [{ output: 1, continuation: { at: '.', commands: Array.from({ length: 101 }, () => ['a/b']) } }])
-    t.is(await s.run(['--output', '.', 'x/y']), 1)
-    await a.all
-    t.alike(s.err, ['haicc: a continuation of 101 commands: not run (at most 100)'], 'the ceiling: 100 commands')
+    t.alike([a.commands[1], s.err], [['haicc/script', '.', 'x/y\n'], ['haicc: line 1: x/y: no protocol']], 'at the root: sent plain; where it stopped, said')
     a.stop()
 
-    a = answerAll(s.root, [{ output: 1, continuation: { at: 'host', commands: 'not a list' } }])
+    a = answerAll(s.root, [{ output: 1, continuation: { at: 'host', commands: [['a/b']] } }])
     t.is(await s.run(['--output', '.', 'x/y']), 0)
     await a.all
     await new Promise(resolve => setTimeout(resolve, 100))
-    t.is(a.commands.length, 1, 'what is no continuation is none')
+    t.is(a.commands.length, 1, 'what is no continuation is none: a list of commands, the form of before')
   } finally { s.remove() }
 })
 
@@ -210,5 +194,30 @@ test('boot/teardown: what boot/deploy put in place removed, nothing else; no run
     t.alike(s.out, [JSON.stringify({ tornDown: '.', runtimes: 0, containers: 0, work })], 'said: the root torn down, the runtimes stopped, the containers removed, the work folder')
     t.alike(readdirSync(work), ['kept'], 'the mrepos, the package store and the setting removed; the rest of the work folder kept')
     t.is(await s.run(['boot/teardown']), 3, 'twice: nothing there, exit 3')
+  } finally { s.remove() }
+})
+
+test('the install\'s scripts: haicc scripts lists them; haicc/file <URI> <name> reads one here and sends it as haicc/script', async (t) => {
+  const s = setup()
+  try {
+    t.is(await s.run(['scripts']), 0, 'none yet: exit 0')
+    t.alike(s.out, [], 'nothing listed')
+    mkdirSync(join(s.home, 'scripts', 'haiccing', 'base-component-haicc'), { recursive: true })
+    writeFileSync(join(s.home, 'scripts', 'check.haicc'), 'crud/read .\n')
+    writeFileSync(join(s.home, 'scripts', 'haiccing', 'base-component-haicc', 'node.haicc'), 'service/initialise\nservice/start\n')
+    t.is(await s.run(['scripts']), 0)
+    t.alike(s.out, ['check', 'haiccing/base-component-haicc/node'], 'the user\'s, then each package\'s, by name')
+    mkdirSync(join(s.root, 'inbox'), { recursive: true }); mkdirSync(join(s.root, 'outbox'), { recursive: true })
+    let a = answerAll(s.root, [{ output: [{ line: 'crud/read .' }] }])
+    t.is(await s.run(['--output', 'host', 'haicc/file', '.', 'check']), 0, 'exit 0')
+    t.alike(await a.all, [['haicc', 'host', 'haicc/script', '.', 'crud/read .\n']], 'sent as haicc/script, its lines read here: no mrepo reads a file of the machine')
+    a = answerAll(s.root, [{ output: [] }])
+    t.is(await s.run(['--output', '.', 'haicc/file', 'swarms/swarm-1', 'haiccing/base-component-haicc/node']), 0)
+    t.alike(await a.all, [['haicc/script', 'swarms/swarm-1', 'service/initialise\nservice/start\n']], 'a package\'s, by its org and package; its URI where the lines run')
+    a.stop()
+    t.is(await s.run(['host', 'haicc/file', '.', 'nope']), 3, 'no such script: exit 3')
+    t.ok(/^haicc: no script: nope \(/.test(s.err[0]), 'said, with where it was looked for')
+    t.is(await s.run(['host', 'haicc/file', '.', '../etc/passwd']), 2, 'a path: no name, exit 2')
+    t.is(await s.run(['host', 'haicc/file', '.']), 2, 'no name: exit 2')
   } finally { s.remove() }
 })
