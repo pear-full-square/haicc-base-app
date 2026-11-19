@@ -16,7 +16,7 @@ test('a command for the mrepos: at the root written plain, elsewhere the haicc c
   t.alike(command(['help', 'service/start']).parts, ['haicc', 'help', 'service/start'], 'a position named help, a command after it: a URI')
   t.alike(command(['test/mydata/users', 'users/check-addresses', '*']).parts, ['haicc', 'test/mydata/users', 'users/check-addresses', '*'], 'a deeper position')
   t.alike(command(['/host', 'service/start']).parts, ['haicc', '/host', 'service/start'], 'a leading slash: sent as typed, for the mrepo to refuse')
-  t.alike(command(['.', 'boot/deploy', 'host', 'base-component-haicc']), { kind: 'request', uri: '.', parts: ['boot/deploy', 'host', 'base-component-haicc'], print: null }, 'at the root: the command plain')
+  t.alike(command(['.', 'boot/deploy', 'host', 'haiccing/base-component-haicc']), { kind: 'request', uri: '.', parts: ['boot/deploy', 'host', 'haiccing/base-component-haicc'], print: null }, 'at the root: the command plain')
   t.alike(command(['host', 'service/start']), { kind: 'request', uri: 'host', parts: ['haicc', 'host', 'service/start'], print: null }, 'elsewhere: haicc <URI> <command>')
   t.alike(command(['host', 'haicc', 'node-1', 'help/get', '.']).parts, ['haicc', 'host', 'haicc', 'node-1', 'help/get', '.'], 'chained: the parts as typed')
   t.alike(command(['.', 'help/get', '.', 'packages', 'no "such" section']).parts, ['help/get', '.', 'packages', 'no "such" section'], 'an argument with spaces and quotes: one part')
@@ -42,11 +42,11 @@ test('the machine level, the usage, the sources', (t) => {
 })
 
 test('refused, exit 2: not a command, or its arguments wrong', (t) => {
-  refused(t, ['nosuch'], 2, "no command 'nosuch' (haicc --help)")
+  refused(t, ['nosuch'], 2, "no command 'nosuch' (haicc --help; a URI is followed by its command: haicc nosuch info/get)")
   refused(t, ['-x'], 2, "no command '-x' (haicc --help)")
   refused(t, ['.'], 2, 'haicc <URI> <protocol>/<action> <argument>... (a command follows the URI)')
   refused(t, ['swarms/swarm-1'], 2, 'haicc <URI> <protocol>/<action> <argument>... (a command follows the URI)')
-  refused(t, ['host'], 2, "no command 'host' (haicc --help)")
+  refused(t, ['host'], 2, "no command 'host' (haicc --help; a URI is followed by its command: haicc host info/get)")
   refused(t, ['boot'], 2, 'haicc boot/deploy, haicc boot/teardown')
   refused(t, ['boot/nosuch'], 2, 'no action: boot nosuch (deploy, teardown)')
   refused(t, ['boot/deploy', 'host'], 2, 'haicc boot/deploy (no arguments)')
