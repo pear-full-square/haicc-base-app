@@ -17,11 +17,13 @@ component's organisation and name.
 ## Returns
 
 - `deploy`: the boot's exit code. What the boot prints goes straight
-  through: its request, completed, then its runtime's status.
-- `teardown`: `{ tornDown: '.', runtimes, containers, work }`, with the
-  number of runtimes stopped and of containers removed. Idempotent: no
-  boot mrepo there (torn down already) is a repeat, nothing done, `{
-  ..., again: true, warning }`, the warning on stderr, exit 0.
+  through: a line a step as it completes, then its outcome (`Booted:
+  local/boot is running, pid <pid>, at <work>.`, or `Failed at <step>:
+  <why>` on stderr).
+- `teardown`: `{ message }`, what was done, said: `Torn down the install
+  at <work>: <n> runtimes stopped, <n> containers removed; ...`. Nothing
+  there (torn down already): `Nothing to tear down at <work>: no boot
+  mrepo there.`, with `warning`, said on stderr, exit 0.
 
 ## Errors
 

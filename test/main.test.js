@@ -204,11 +204,11 @@ test('boot/teardown: what boot/deploy put in place removed, the packages\' scrip
     writeFileSync(join(work, 'scripts', 'haiccing', 'base-component-haicc', 'cluster.haicc'), 'crud/read .\n')
     writeFileSync(join(work, 'scripts', 'mine.haicc'), 'crud/read .\n')
     t.is(await s.run(['boot/teardown']), 0)
-    t.alike(s.out, [JSON.stringify({ tornDown: '.', runtimes: 0, containers: 0, work })], 'said: the root torn down, the runtimes stopped, the containers removed, the work folder')
+    t.alike(s.out, [`Torn down the install at ${work}: 0 runtimes stopped, 0 containers removed; its mrepos, its package store and its packages' scripts removed, yours kept.`], 'said: the install torn down, the runtimes stopped, the containers removed, where')
     t.alike(readdirSync(work).sort(), ['kept', 'scripts'], 'the mrepos, the package store and the setting removed; the rest of the work folder kept')
     t.alike(readdirSync(join(work, 'scripts')), ['mine.haicc'], 'the packages\' scripts removed, the user\'s kept')
     t.is(await s.run(['boot/teardown']), 0, 'twice: a repeat, exit 0')
-    t.alike(JSON.parse(s.out[0]).again, true, 'said: again')
+    t.alike(s.out, [`Nothing to tear down at ${work}: no boot mrepo there.`], 'said: nothing there')
   } finally { s.remove() }
 })
 
