@@ -22,10 +22,6 @@ const CONSOLE = { out: line => console.log(line), err: line => console.error(lin
 // stdin whole, as text: a heredoc's lines
 const readStdin = () => new Promise(resolve => { if (process.stdin.isTTY) return resolve(''); let text = ''; process.stdin.on('data', d => { text += d.toString() }); process.stdin.on('end', () => resolve(text)) })
 
-// An answer in natural language: an output's `answer`, its lines (help,
-// haici); null when it has none.
-const answerOf = o => { const a = o?.output?.answer; return Array.isArray(a) && a.length && a.every(l => typeof l === 'string') ? a : null }
-
 export async function main (argv, { env = {}, bare = os.execPath(), io = CONSOLE } = {}) {
   const home = env.HAICC_HOME || join(os.homedir(), '.haicc')
   const work = env.HAICC_WORK || join(home, 'work')
@@ -53,22 +49,27 @@ export async function main (argv, { env = {}, bare = os.execPath(), io = CONSOLE
       io.out(JSON.stringify(r))
       return 0
     }
-    // a command for the mrepos: into the root mrepo's inbox, its response printed
+    // a command for the mrepos: into the root mrepo's inbox, what is returned printed
     if (!existsSync(join(root, 'inbox'))) throw new Failure(`no boot mrepo at ${work} (haicc boot/deploy)`, 3)
     const timeout = Number(env.HAICC_TIMEOUT) > 0 ? Number(env.HAICC_TIMEOUT) : 120
-    const print = c.print ?? (env.HAICC_OUTPUT === '1' ? 'output' : env.HAICC_RAW === '1' ? 'raw' : 'record')
-    // one command sent, its response printed; -> its outcome
+    // what is printed: the message, what is said (the default); the whole
+    // request, unpacked for reading (--request); the record as it is
+    // stored (--raw)
+    const print = c.print ?? (env.HAICC_RAW === '1' ? 'raw' : env.HAICC_REQUEST === '1' ? 'request' : 'message')
+    // one command sent, what is returned printed; -> its outcome
     const send = async parts => {
       const { text } = await request(root, parts, { uri: CONFIG.root.uri, reply: CONFIG.reply, timeout })
       const o = outcome(text)
       if (print === 'raw') io.out(text.replace(/\n$/, ''))
-      // an output that answers in natural language: its lines; else the record unpacked
-      if (print === 'record') { const lines = answerOf(o); if (lines) for (const l of lines) io.out(l); else io.out(unpack(text, widthOf(home, io.columns?.() ?? null).width)) }
-      if (!o) throw new Failure('the response holds no completed form', 5)
-      if ('error' in o) throw new Failure(o.error, 1)
-      if (print === 'output') io.out(JSON.stringify(o.output))
-      // not run (its flags kept it from it: completed, not failed): exit 1, so a continuation stops here
-      if (o.output && typeof o.output === 'object' && o.output.run === false) throw new Failure(`not run: ${(o.output.why ?? []).join('; ')}`, 1)
+      if (print === 'request') io.out(unpack(text, widthOf(home, io.columns?.() ?? null).width))
+      if (!o) throw new Failure('the response holds no request returned', 5)
+      // failed: what is said, on stderr; exit 1, so a continuation stops here
+      if (o.status === 'failed') throw new Failure(o.message, 1)
+      if (print === 'message') {
+        io.out(o.message)
+        // its data, where data is its product: what is attached, a line each
+        for (const a of o.attachments) io.out(`Attached: ${a.name} (${a.type})${a.at ? `, at ${a.at}` : ''}`)
+      }
       return o
     }
     // haicc/script and its URI, no lines after them: the lines from stdin (a heredoc)
@@ -83,7 +84,7 @@ export async function main (argv, { env = {}, bare = os.execPath(), io = CONSOLE
     // printed. (The mrepo it is for need not link the haicc protocol.)
     if (o.continuation) {
       const { at, script } = o.continuation
-      if (print === 'record') io.out(`haicc . haicc/script ${at} ...`)
+      if (print === 'message') io.out(`haicc . haicc/script ${at} ...`)
       await send(['haicc/script', at, script])
     }
     return 0

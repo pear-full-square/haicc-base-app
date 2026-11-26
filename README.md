@@ -18,7 +18,7 @@ into the root mrepo's inbox folder and prints the response. Offered by
 `CONFIG`, in `internal/config.js`: the organisation its packages come
 from, `haiccing`; the component the root mrepo is built from,
 `base-component-boot`; the root mrepo, named `boot`, its unique URI
-`local/boot`; where a completed form is addressed back to,
+`local/boot`; where a request returned is addressed back to,
 `/haicc/terminal`.
 
 ## Folders
@@ -46,7 +46,7 @@ the platform's first step.
   answer, an error: `1`.
 - `3`: something is missing: the boot mrepo, a package, a download.
 - `4`: no response in time.
-- `5`: a response with no completed form.
+- `5`: a response whose request is not returned.
 
 `Failure`, in `internal/failure.js`, carries one with what is said.
 

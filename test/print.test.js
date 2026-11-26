@@ -60,12 +60,17 @@ test('unpack: nothing of a record changed, at any width', (t) => {
   t.pass('unpacked and packed again: every record as stored')
 })
 
-test('outcome: the completed form three deep, its output or its error; neither: none', (t) => {
-  t.alike(outcome(stored(core)), { output: { service: 'started', state: 'started' } }, 'an output')
-  t.alike(outcome(stored({ ...core, value: { ...form, output: undefined, error: 'deployed already: /host' } })), { error: 'deployed already: /host' }, 'an error')
-  t.alike(outcome(stored({ ...core, value: { ...form, error: 'two\nlines' } })), { error: 'two lines' }, 'an error over lines: on one, and it wins over an output')
-  t.alike(outcome(stored({ ...core, value: { ...form, output: null } })), { output: null }, 'an output of null is an output')
-  t.is(outcome(stored({ ...core, value: { ...form, output: undefined } })), null, 'a form not completed: none')
-  t.is(outcome(stored(core.value)), null, 'no core around the form: none')
+test('outcome: what a record\'s request returned: its status, what is said, its attachments; its continuation; not returned: none', (t) => {
+  const request = { command: 'service/start', from: 'terminal', to: 'local/host', reply: '/haicc/terminal', origin: null, form: null, processing: { log: [], metrics: null, changed: [], waiting: null, sent: null, continuation: null }, returned: null }
+  const rec = r => JSON.stringify({ topic: '/outbox', key: null, offset: 1795312345678, timestamp: '2026-11-13T02:02:31.745Z', headers: {}, value: r }) + '\n'
+  const done = { status: 'done', message: 'The service is started: its state is started.', attachments: [] }
+  t.alike(outcome(rec({ ...request, returned: done })), done, 'returned done: what is said')
+  t.alike(outcome(rec({ ...request, returned: { status: 'failed', message: 'Refused, nothing run.\nnot now', attachments: [] } })), { status: 'failed', message: 'Refused, nothing run.\nnot now', attachments: [] }, 'failed: what is said, its lines as they are')
+  const go = { at: 'host', script: 'service/start\n' }
+  t.alike(outcome(rec({ ...request, processing: { ...request.processing, continuation: go }, returned: done })).continuation, go, 'done, with a continuation: what to go on with')
+  t.absent('continuation' in outcome(rec({ ...request, processing: { ...request.processing, continuation: go }, returned: { ...done, status: 'failed' } })), 'failed: none to go on with')
+  t.absent('continuation' in outcome(rec({ ...request, processing: { ...request.processing, continuation: { at: 'host', commands: [] } }, returned: done })), 'what is no continuation: none')
+  t.is(outcome(rec(request)), null, 'not returned: none')
+  t.is(outcome(rec({ ...request, returned: { status: 'odd', message: 'x' } })), null, 'a status there is none of: none')
   t.is(outcome('not json'), null, 'not a record: none')
 })

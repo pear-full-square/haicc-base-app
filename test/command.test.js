@@ -29,8 +29,8 @@ test('a command for the mrepos: at the root written plain, elsewhere the haicc c
   t.alike(command(['output', '100']), { kind: 'output', args: ['100'] })
   t.alike(command(['./output', 'help/get']).parts, ['haicc', './output', 'help/get'], 'a position named so: ./output')
   t.is(command(['--raw', '.', 'help/get']).print, 'raw', '--raw before the URI')
-  t.is(command(['--output', 'host', 'help/get']).print, 'output', '--output before the URI')
-  t.alike(command(['--output', 'host', 'help/get']).parts, ['haicc', 'host', 'help/get'], 'the option is not a part')
+  t.is(command(['--request', 'host', 'help/get']).print, 'request', '--request before the URI')
+  t.alike(command(['--request', 'host', 'help/get']).parts, ['haicc', 'host', 'help/get'], 'the option is not a part')
 })
 
 test('the machine level, the usage, the sources', (t) => {
@@ -50,7 +50,7 @@ test('refused, exit 2: not a command, or its arguments wrong', (t) => {
   refused(t, ['boot'], 2, 'haicc boot/deploy, haicc boot/teardown')
   refused(t, ['boot/nosuch'], 2, 'no action: boot nosuch (deploy, teardown)')
   refused(t, ['boot/deploy', 'host'], 2, 'haicc boot/deploy (no arguments)')
-  refused(t, ['--output'], 2, '--output goes before a URI')
+  refused(t, ['--request'], 2, '--request goes before a URI')
   refused(t, ['--raw'], 2, '--raw goes before a URI')
   refused(t, ['--raw', 'host'], 2, 'haicc <URI> <protocol>/<action> <argument>... (a command follows the URI)')
   refused(t, ['--flags', 'log=debug', '--', 'host', 'help/get'], 2, 'haicc <URI> --flags <flag>... -- <protocol>/<action> ... (flags follow a URI: they are that step\'s)')

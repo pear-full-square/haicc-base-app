@@ -23,7 +23,7 @@ the Bare running it, and exits with what it returns.
 - `HAICC_WORK`: the work folder, `<home>/work` by default.
 - `HAICC_TIMEOUT`: seconds to wait for a response, 120.
 - `HAICC_RAW=1`: the response record printed as stored, one line.
-- `HAICC_OUTPUT=1`: the completed form's output alone printed.
+- `HAICC_REQUEST=1`: the whole request printed, its record unpacked.
 
 The width the unpacked record is fitted to is no variable: `haicc
 output` sets it (`output`).
@@ -35,16 +35,15 @@ The exit code, a number.
 ## Design
 
 - **A command for the mrepos**, `haicc <URI> <protocol>/<action>
-  <argument>...`: written into the root mrepo's inbox folder; the
-  response record printed whole, unpacked across lines, or, when its
-  output answers in natural language (`answer`, its lines: help, haici),
-  those lines (the record with `--raw`); exit 0 when its
-  completed form holds an output, 1 an error, which is also said on
-  stderr; 1 too for a command its flags kept from being run (its output
-  `run: false`, completed, not failed), `not run:` and why said on
-  stderr.
-- **A continuation**: a response that answers with a script to go on
-  with is followed: each of its commands sent from the position it is
+  <argument>...`: a request, its line as typed, dropped into the root
+  mrepo's inbox folder; what is returned printed: what it says, as it
+  is, then what is attached, a line each (`Attached: <name> (<type>), at
+  <where>`). With `--request` the whole request, its record unpacked
+  across lines; with `--raw` the record as stored. Exit 0 when it is
+  returned `done`; 1 when `failed`: what it says on stderr, nothing on
+  stdout (a command its flags kept from being run is failed too).
+- **A continuation**: a request returned done with a script to go on
+  with (its processing's `continuation`) is followed: each of its commands sent from the position it is
   written at, after the response of the one before, each response
   printed as the first; where records are printed for reading, each
   command is said first, as it would be typed. The first that fails ends
