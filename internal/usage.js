@@ -2,13 +2,16 @@
 export const USAGE = `haicc <URI> <protocol>/<action> <argument>...   a command for the mrepos:
                                                 go to this node position and
                                                 execute the command that
-                                                follows; its response record
-                                                printed, unpacked across lines
-                                                to the width (haicc output)
+                                                follows; what it says
+                                                printed, then what is
+                                                attached, a line each; failed:
+                                                on stderr, exit 1
+haicc --request <URI> <protocol>/<action> ...   the whole request returned,
+                                                its record unpacked across
+                                                lines to the width (haicc
+                                                output)
 haicc --raw <URI> <protocol>/<action> ...       the record as it is stored,
                                                 one line
-haicc --output <URI> <protocol>/<action> ...    the completed form's output
-                                                alone
 haicc <URI> --flags <flag>... -- <command>      flags after a URI: that
                                                 step's, space separated,
                                                 closed by --, the next
@@ -27,8 +30,8 @@ haicc <URI> --flags <flag>... -- <command>      flags after a URI: that
 haicc <URI> <command> <URI> --flags <flag>...   after the last command's URI:
                                                 that command's, closed by the
                                                 end of the line
-haicc output                                    the width a record is printed
-                                                to: auto, the terminal's (80
+haicc output                                    the width a request is printed
+                                                to (--request): auto, the terminal's (80
                                                 when the output is none)
 haicc output <width> | auto                     set, kept; back to auto
 haicc boot/deploy                               the machine level: the boot
@@ -60,7 +63,7 @@ haicc sources https | no-https [<org>...]       https as the backup, or not
   haicc host haicc node-1 info/get
   haicc host crud/read . --flags log=verbose
   haicc host --flags log=debug -- haicc node-1 crud/read .
-  haicc . crud/read "done/*[value/value/protocol='boot']" --flags layer=request
+  haicc . crud/read "done/*[value/form/protocol='boot']" --flags layer=request
   haicc . boot/deploy workbench haiccing/base-solution-workbench
   haicc host boot/teardown node-1
   haicc . boot/teardown host
@@ -72,8 +75,8 @@ written with ./ in front: ./sources, ./boot, ./output. An action's first
 argument is its own target URI, . the position itself, then what it
 takes: haicc splectral splectral/start . 4401.
 
-A request's log is in its record: info unasked, more with --flags
-log=verbose; the requests done, at the request layer:
+A request's log is in the request (--request shows it): info unasked,
+more with --flags log=verbose; the requests done, at the request layer:
 haicc host crud/read "done/*" --flags layer=request.
 
 An mrepo answers about itself: haicc host info/get, haicc host info/get haiccing;

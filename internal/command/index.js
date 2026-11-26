@@ -26,7 +26,7 @@ function forMrepos (args, print) {
 
 export function command (argv) {
   const [first = '', ...rest] = argv
-  if (first === '--output' || first === '--raw') {
+  if (first === '--request' || first === '--raw') {
     if (!rest.length) throw new Failure(`${first} goes before a URI`, 2)
     return forMrepos(rest, first.slice(2))
   }

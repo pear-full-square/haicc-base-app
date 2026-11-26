@@ -16,8 +16,8 @@ machine level command, `sources`, or the usage's.
 One of:
 
 - `{ kind: 'request', uri, parts, print }`: a command for the mrepos.
-  `parts` is what is sent; `print` is `raw` or `output` when `--raw` or
-  `--output` came before the URI, else null. A request's flags are among
+  `parts` is what is sent; `print` is `raw` or `request` when `--raw` or
+  `--request` came before the URI, else null. A request's flags are among
   the parts, as typed: a list after a URI (`--flags log=debug`), that
   step's.
 - `{ kind: 'output', args }`: `haicc output`, the width a record is
@@ -32,7 +32,7 @@ A `Failure` with exit code 2:
 
 - One word that is no command of haicc's own.
 - A URI with no command after it.
-- `--raw` or `--output` with nothing after it.
+- `--raw` or `--request` with nothing after it.
 - `--flags` in front of the URI: flags follow a URI.
 - A machine level protocol alone, an action it does not have, or
   arguments after one.

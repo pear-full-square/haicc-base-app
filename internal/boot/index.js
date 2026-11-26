@@ -13,7 +13,7 @@ export async function deploy ({ home, work, bare, org, boot, stdio = 'inherit' }
   const s = sources(home)
   const bundle = s.find(`${org}/${boot}.bundle`)
   if (!bundle) throw new Failure(`no ${org}/${boot}.bundle in the sources (haicc sources link <folder>)`, 3)
-  const child = spawn(bare, [bundle, `--work=${work}`, ...s.list().map(x => `--sources=${x}`), '--no-follow'], { stdio })
+  const child = spawn(bare, [bundle, `--work=${work}`, ...s.list().map(x => `--sources=${x}`)], { stdio })
   return new Promise(resolve => child.on('exit', code => resolve(code ?? 1)))
 }
 
@@ -65,10 +65,10 @@ function containers (work) {
 
 // haicc boot/teardown: every runtime of the install stopped, the
 // replicas' containers removed, then what boot/deploy put in place
-// removed; what was done. Idempotent: nothing there (torn down already),
+// removed; what was done, said ({ message }). Idempotent: nothing there (torn down already),
 // a warning, nothing done.
 export async function teardown ({ work, root }) {
-  if (!existsSync(root)) return { tornDown: '.', runtimes: 0, containers: 0, work, again: true, warning: `no boot mrepo at ${work}: nothing to tear down` }
+  if (!existsSync(root)) return { message: `Nothing to tear down at ${work}: no boot mrepo there.`, warning: `no boot mrepo at ${work}: nothing to tear down` }
   // the runtime's library only here: nothing else of the app needs it
   const { stop } = await import('mrepo-base-runtime')
   let runtimes = 0
@@ -83,7 +83,8 @@ export async function teardown ({ work, root }) {
   // user's, scripts/<name>.haicc, kept
   const scripts = join(work, SCRIPTS)
   if (existsSync(scripts)) for (const n of readdirSync(scripts)) if (statSync(join(scripts, n)).isDirectory()) rmSync(join(scripts, n), { recursive: true, force: true })
-  return { tornDown: '.', runtimes, containers: replicas, work }
+  const count = (k, what) => `${k} ${what}${k === 1 ? '' : 's'}`
+  return { message: `Torn down the install at ${work}: ${count(runtimes, 'runtime')} stopped, ${count(replicas, 'container')} removed; its mrepos, its package store and its packages' scripts removed, yours kept.` }
 }
 
 // The machine level's protocols, their actions.
