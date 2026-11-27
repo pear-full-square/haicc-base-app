@@ -67,8 +67,16 @@ export async function main (argv, { env = {}, bare = os.execPath(), io = CONSOLE
       if (o.status === 'failed') throw new Failure(o.message, 1)
       if (print === 'message') {
         io.out(o.message)
-        // its data, where data is its product: what is attached, a line each
-        for (const a of o.attachments) io.out(`Attached: ${a.name} (${a.type})${a.at ? `, at ${a.at}` : ''}`)
+        // its data, where data is its product: what is attached, a line
+        // each; a value (content of one of AVRO's own types) below its
+        // line, readable: a text as it is, anything else as JSON; content
+        // of a type not held here: its size; a pointer: where its value is
+        for (const a of o.attachments) {
+          const carried = Object.keys(a).includes('value')
+          const size = !carried && a.content != null ? Buffer.from(a.content, 'base64').length : null
+          io.out(`Attached: ${a.name} (${a.type})${size !== null ? `, ${size} ${size === 1 ? 'byte' : 'bytes'}` : ''}${a.at ? `, at ${a.at}` : ''}`)
+          if (carried) io.out(typeof a.value === 'string' ? a.value.replace(/\n$/, '') : JSON.stringify(a.value))
+        }
       }
       return o
     }
