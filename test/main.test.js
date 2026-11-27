@@ -135,11 +135,11 @@ test('a command for the mrepos: what it says printed, with what is attached; the
     t.alike([arrived.value.command, arrived.value.from, arrived.value.to, arrived.value.reply, arrived.value.form, arrived.value.returned], ['boot/deploy host haiccing/base-component-haicc', 'terminal', CONFIG.root.uri, CONFIG.reply, null, null], 'around a request: at the root the command plain, its line as typed; who asks, the mrepo it is for, where its answer goes')
     t.alike(s.out, [said.message], 'by default what it says, as it is: nothing else')
 
-    a = answer(s.root, { message: 'Read notes.', attachments: [{ name: 'the document', type: 'string', at: 'main/notes/.node.json' }, { name: 'its rows', type: 'haiccing/base-package-crud/nodes', content: 'AAEC', at: null }, { name: 'its text', type: 'avro/string', content: 'CmhlbGxv', at: null }, { name: 'its count', type: 'avro/long', content: 'Bg==', at: null }] })
+    a = answer(s.root, { message: 'Read notes.', attachments: [{ name: 'the document', type: 'string', at: 'main/notes/.node.json' }, { name: 'its rows', type: 'haiccing/base-package-crud/nodes', content: 'AAEC', at: null }, { name: 'its text', type: 'avro/string', content: 'CmhlbGxv', at: null }, { name: 'its count', type: 'avro/long', content: 'Bg==', at: null }, { name: 'its bytes', type: 'avro/bytes', content: 'BAEC', at: null }] })
     t.is(await s.run(['host', 'crud/read', 'notes']), 0)
     ;({ arrived } = await a)
     t.is(arrived.value.command, 'haicc host crud/read notes', 'elsewhere: the haicc command as it is')
-    t.alike(s.out, ['Read notes.', 'Attached: the document (string), at main/notes/.node.json', 'Attached: its rows (haiccing/base-package-crud/nodes), 3 bytes', 'Attached: its text (avro/string)', 'hello', 'Attached: its count (avro/long)', '3'], 'what is attached: a line each, its name, its type; a pointer, where it is; content of a type not held here, its size; content of one of AVRO\'s own types below its line, readable')
+    t.alike(s.out, ['Read notes.', 'Attached: the document (string), at main/notes/.node.json', 'Attached: its rows (haiccing/base-package-crud/nodes), 3 bytes', 'Attached: its text (avro/string)', 'hello', 'Attached: its count (avro/long)', '3', 'Attached: its bytes (avro/bytes)', 'AQI='], 'what is attached: a line each, its name, its type; a pointer, where it is; content of a type not held here, its size; content of one of AVRO\'s own types below its line, readable')
 
     a = answer(s.root, said)
     t.is(await s.run(['--raw', 'host', 'service/start']), 0)

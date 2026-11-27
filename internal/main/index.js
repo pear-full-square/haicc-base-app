@@ -59,9 +59,10 @@ export async function main (argv, { env = {}, bare = os.execPath(), io = CONSOLE
     // one command sent, what is returned printed; -> its outcome
     const send = async parts => {
       const { text } = await request(root, parts, { uri: CONFIG.root.uri, reply: CONFIG.reply, timeout })
-      const o = outcome(text)
+      // (the record as stored first: whatever its attachments hold)
       if (print === 'raw') io.out(text.replace(/\n$/, ''))
       if (print === 'request') io.out(unpack(text, widthOf(home, io.columns?.() ?? null).width))
+      const o = outcome(text)
       if (!o) throw new Failure('the response holds no request returned', 5)
       // failed: what is said, on stderr; exit 1, so a continuation stops here
       if (o.status === 'failed') throw new Failure(o.message, 1)
@@ -75,7 +76,7 @@ export async function main (argv, { env = {}, bare = os.execPath(), io = CONSOLE
           const carried = Object.keys(a).includes('value')
           const size = !carried && a.content != null ? Buffer.from(a.content, 'base64').length : null
           io.out(`Attached: ${a.name} (${a.type})${size !== null ? `, ${size} ${size === 1 ? 'byte' : 'bytes'}` : ''}${a.at ? `, at ${a.at}` : ''}`)
-          if (carried) io.out(typeof a.value === 'string' ? a.value.replace(/\n$/, '') : JSON.stringify(a.value))
+          if (carried) io.out(typeof a.value === 'string' ? a.value.replace(/\n$/, '') : a.value instanceof Uint8Array ? Buffer.from(a.value).toString('base64') : JSON.stringify(a.value))
         }
       }
       return o
