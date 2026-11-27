@@ -37,8 +37,11 @@ The exit code, a number.
 - **A command for the mrepos**, `haicc <URI> <protocol>/<action>
   <argument>...`: a request, its line as typed, dropped into the root
   mrepo's inbox folder; what is returned printed: what it says, as it
-  is, then what is attached, a line each (`Attached: <name> (<type>), at
-  <where>`). With `--request` the whole request, its record unpacked
+  is, then what is attached, a line each (`Attached: <name> (<type>)`; a
+  pointer `, at <where>`; content of a type the command does not hold `,
+  <n> bytes`); content of one of AVRO's own types (`avro/string`) shown
+  below its line, a text as it is, anything else as JSON. The command
+  decodes nothing itself: an answer is read through the request module. With `--request` the whole request, its record unpacked
   across lines; with `--raw` the record as stored. Exit 0 when it is
   returned `done`; 1 when `failed`: what it says on stderr, nothing on
   stdout (a command its flags kept from being run is failed too).

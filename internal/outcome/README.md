@@ -12,7 +12,10 @@ what is returned is the request's own.
 ## Returns
 
 - `{ status, message, attachments }`: what the request returned: `done`
-  or `failed`, what is said, its lines as they are, what is attached.
+  or `failed`, what is said, its lines as they are, what is attached:
+  read through the request module (`opened`), the command holding
+  AVRO's own types only, so content of one of those its value; any
+  other, or content that is no value of its type, the wrapper as it is.
   With `continuation`, `{ at, script }`, when it is done and its
   processing holds a script to go on with (anything there that is no
   such thing is left out; none when it failed).
