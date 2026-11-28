@@ -2,19 +2,13 @@
 
 Reads and writes the lists of registered sources, and answers the haicc sources command.
 
-A source is where packages and third-party components come from. Two
-lists, a file each in haicc's own folder, a line a source:
-
-- **Internal**, `sources.list`: the install's sources, what the
-  platform reads (`base-docs-haicc`, "sources"): `folder:<path>`, a
-  local folder, in the order linked.
-- **External**, `external.list`: where a boundary process, the
-  download, fetches from: `github:<org>`. Never handed inside the
-  platform.
-
-A line in `sources.list` that is no folder (an install made before the
-split kept `github:haiccing` there) is not read; `haicc sources` says
-so, and `unlink` takes it off.
+Two lists, a file each in haicc's own folder, a line a source: the
+internal, `sources.list`, the install's folders (`folder:<path>`), what
+the platform reads; the external, `external.list`, where the download
+fetches from (`github:<org>`), never handed inside. A line in
+`sources.list` that is no folder (an install made before the split kept
+`github:haiccing` there) is not read; `haicc sources` says so, and
+`unlink` takes it off.
 
 ## Signature
 
