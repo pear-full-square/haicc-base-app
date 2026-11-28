@@ -8,12 +8,13 @@ import { sources } from '../sources/index.js'
 import { Failure } from '../failure.js'
 
 // haicc boot/deploy: the boot component's bundle, from the sources, run
-// with the Bare running this; its exit code.
+// with the Bare running this, handed the internal list's folders only (an
+// external source is never handed inside); its exit code.
 export async function deploy ({ home, work, bare, org, boot, stdio = 'inherit' }) {
   const s = sources(home)
   const bundle = s.find(`${org}/${boot}.bundle`)
   if (!bundle) throw new Failure(`no ${org}/${boot}.bundle in the sources (haicc sources link <folder>)`, 3)
-  const child = spawn(bare, [bundle, `--work=${work}`, ...s.list().map(x => `--sources=${x}`)], { stdio })
+  const child = spawn(bare, [bundle, `--work=${work}`, ...s.folders().map(f => `--sources=folder:${f}`)], { stdio })
   return new Promise(resolve => child.on('exit', code => resolve(code ?? 1)))
 }
 

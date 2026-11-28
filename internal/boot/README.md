@@ -36,8 +36,9 @@ component's organisation and name.
 ## Design
 
 - **deploy** runs the boot component's bundle, from the first folder
-  that holds it, with the Bare given, the work folder and every source
-  registered. The boot builds the root mrepo the first time and starts
+  that holds it, with the Bare given, the work folder and the internal
+  list's folders, in order (an external source, or a line in
+  `sources.list` that is no folder, is never handed to it). The boot builds the root mrepo the first time and starts
   its runtime; there already, it is kept.
 - **teardown** stops every runtime from the root down, those deployed
   below an mrepo before the mrepo itself, each asked over its socket and

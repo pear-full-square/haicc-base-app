@@ -48,12 +48,13 @@ haicc scripts                                   the install's scripts by
                                                 yours (<name>.haicc); haicc
                                                 <URI> haicc/file <URI> <name>
                                                 runs one
-haicc sources                                   the sources registered
-haicc sources unlink <folder>
+haicc sources                                   the sources: the install's
+                                                folders, then where the
+                                                download fetches from
+haicc sources unlink <folder>|<source>          taken off its list
 haicc sources download <org>...                 an organisation's packages
                                                 fetched over https (the first
                                                 step's, before the app)
-haicc sources https | no-https [<org>...]       https as the backup, or not
 
   haicc boot/deploy
   haicc . boot/deploy host haiccing/base-component-haicc

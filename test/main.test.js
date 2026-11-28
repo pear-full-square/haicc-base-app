@@ -6,7 +6,7 @@ import { inboxOf, outboxOf } from 'mrepo-base-request'
 import { mkdtempSync, mkdirSync, rmSync, readdirSync, readFileSync, writeFileSync, existsSync } from 'bare-fs'
 import { tmpdir } from 'bare-os'
 import { join } from 'bare-path'
-import { main, LIST, USAGE, CONFIG, WIDTH } from '../index.js'
+import { main, LIST, EXTERNAL, USAGE, CONFIG, WIDTH } from '../index.js'
 
 function setup () {
   const home = mkdtempSync(join(tmpdir(), 'haicc-app-'))
@@ -115,11 +115,28 @@ test('nothing booted: an mrepo command says so, exit 3; the teardown a repeat, a
 test('haicc sources: printed a line a source', async (t) => {
   const s = setup()
   try {
-    writeFileSync(join(s.home, LIST), 'folder:/a\ngithub:haiccing\n')
+    writeFileSync(join(s.home, LIST), 'folder:/a\n')
+    writeFileSync(join(s.home, EXTERNAL), 'github:haiccing\n')
     t.is(await s.run(['sources']), 0)
     t.alike(s.out, ['folder:/a', 'github:haiccing'])
     t.is(await s.run(['sources', 'download', 'haiccing/base-package-runtime']), 3)
     t.alike(s.err, ['haicc: haiccing/base-package-runtime: a package is not downloaded alone; its organisation is (haicc sources download haiccing)'], 'said once, exit 3')
+  } finally { s.remove() }
+})
+
+test('boot/deploy: the boot handed the internal list\'s folders only, in order; a github: line in either list never handed', async (t) => {
+  const s = setup()
+  try {
+    // the boot program a stand-in: a script run by sh, writing what it is handed
+    const a = join(s.home, 'a'); const b = join(s.home, 'b')
+    mkdirSync(join(a, CONFIG.org), { recursive: true }); mkdirSync(b)
+    const got = join(s.home, 'handed')
+    writeFileSync(join(a, CONFIG.org, `${CONFIG.boot}.bundle`), `printf '%s\\n' "$@" > '${got}'\n`)
+    writeFileSync(join(s.home, LIST), `github:haiccing\nfolder:${a}\nfolder:${b}\n`)
+    writeFileSync(join(s.home, EXTERNAL), 'github:splectral\n')
+    const code = await main(['boot/deploy'], { env: { HAICC_HOME: s.home }, bare: '/bin/sh', io: { out: () => {}, err: () => {}, stdio: 'ignore' } })
+    t.is(code, 0, 'the stand-in ran, exit 0')
+    t.alike(readFileSync(got, 'utf8').split('\n').filter(Boolean), [`--work=${s.work}`, `--sources=folder:${a}`, `--sources=folder:${b}`], 'handed: the work folder, the folders in order; no github: line')
   } finally { s.remove() }
 })
 
