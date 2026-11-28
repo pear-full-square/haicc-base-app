@@ -107,7 +107,7 @@ test('nothing booted: an mrepo command says so, exit 3; the teardown a repeat, a
     mkdirSync(join(s.home, 'src'))
     writeFileSync(join(s.home, LIST), `folder:${join(s.home, 'src')}\n`)
     t.is(await s.run(['boot/deploy']), 3)
-    t.alike(s.err, [`haicc: no ${CONFIG.org}/${CONFIG.boot}.bundle in the sources (haicc sources link <folder>)`])
+    t.alike(s.err, [`haicc: no ${CONFIG.org}/${CONFIG.boot}.bundle in the sources: the platform reads local folders only (haicc sources download ${CONFIG.org}, or haicc sources link <folder>)`])
     t.absent(existsSync(join(s.home, 'work')), 'nothing written')
   } finally { s.remove() }
 })

@@ -13,7 +13,7 @@ import { Failure } from '../failure.js'
 export async function deploy ({ home, work, bare, org, boot, stdio = 'inherit' }) {
   const s = sources(home)
   const bundle = s.find(`${org}/${boot}.bundle`)
-  if (!bundle) throw new Failure(`no ${org}/${boot}.bundle in the sources (haicc sources link <folder>)`, 3)
+  if (!bundle) throw new Failure(`no ${org}/${boot}.bundle in the sources: the platform reads local folders only (haicc sources download ${org}, or haicc sources link <folder>)`, 3)
   const child = spawn(bare, [bundle, `--work=${work}`, ...s.folders().map(f => `--sources=folder:${f}`)], { stdio })
   return new Promise(resolve => child.on('exit', code => resolve(code ?? 1)))
 }
