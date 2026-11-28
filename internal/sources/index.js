@@ -18,8 +18,6 @@ export function sources (home) {
   const at = name => join(home, name)
   const lines = name => existsSync(at(name)) ? readFileSync(at(name), 'utf8').split('\n').filter(Boolean) : []
   const write = (name, l) => { writeFileSync(`${at(name)}.part`, l.map(x => `${x}\n`).join('')); renameSync(`${at(name)}.part`, at(name)) }
-  // a line's list: a folder the internal one, any other kind the external
-  const listOf = entry => entry.startsWith(FOLDER) ? LIST : EXTERNAL
   const self = {
     // the internal list's folders, in the order linked
     folders: () => lines(LIST).filter(l => l.startsWith(FOLDER)).map(l => l.slice(FOLDER.length)),
@@ -29,7 +27,6 @@ export function sources (home) {
     unread: () => lines(LIST).filter(l => !l.startsWith(FOLDER)),
     // a file (relative to a source) in the first folder that holds it
     find: name => self.folders().map(d => join(d, name)).find(f => existsSync(f)) ?? null,
-    register: entry => { const n = listOf(entry); if (!lines(n).includes(entry)) write(n, [...lines(n), entry]) },
     // taken off whichever list holds it
     unregister: entry => { for (const n of [LIST, EXTERNAL]) if (lines(n).includes(entry)) write(n, lines(n).filter(l => l !== entry)) },
     // what haicc sources prints: the internal, then the external, then

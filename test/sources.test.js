@@ -1,7 +1,7 @@
 // The sources registered: the list's file read and written, and the haicc
 // sources command's actions.
 import test from 'brittle'
-import { mkdtempSync, mkdirSync, rmSync, readFileSync, writeFileSync, existsSync } from 'bare-fs'
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync, existsSync } from 'bare-fs'
 import { tmpdir } from 'bare-os'
 import { join } from 'bare-path'
 import { sources, sourcesCommand, LIST, EXTERNAL, Failure } from '../index.js'
@@ -23,8 +23,9 @@ test('sources: two lists, the internal its folders in the order linked, the exte
     t.is(s.find('org/x.bundle'), join(h, 'b', 'org', 'x.bundle'), 'found in the second folder')
     t.is(s.find('org/y.bundle'), join(h, 'a', 'org', 'y.bundle'), 'in both: the first')
     t.is(s.find('org/z.bundle'), null, 'in none')
-    s.register('github:org'); s.register('github:org'); s.register('folder:/c')
-    t.is(readFileSync(join(h, EXTERNAL), 'utf8'), 'github:org\n', 'a github: line registered in the external list, once')
+    // (as the first step writes them: a link the internal list, a download both)
+    writeFileSync(join(h, LIST), `github:org\nfolder:${join(h, 'a')}\nfolder:${join(h, 'b')}\nfolder:/c\n`)
+    writeFileSync(join(h, EXTERNAL), 'github:org\n')
     t.alike(s.folders(), [join(h, 'a'), join(h, 'b'), '/c'], 'a folder in the internal list')
     t.alike(s.shown(), [`folder:${join(h, 'a')}`, `folder:${join(h, 'b')}`, 'folder:/c', 'github:org', `github:org (in ${LIST}, not read: the install reads folders only)`], 'shown: the folders, the external, what is not read')
     s.unregister('github:org')

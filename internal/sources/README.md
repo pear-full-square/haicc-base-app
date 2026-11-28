@@ -25,8 +25,6 @@ reads it to act on it yet. A line in
 - `external()`: the external list's lines.
 - `unread()`: the internal list's lines that are no folder.
 - `find(name)`: a file's path in the first folder that holds it, or null.
-- `register(entry)`: a line added once, to its list (a folder to the
-  internal, any other kind to the external).
 - `unregister(entry)`: a line taken off whichever list holds it.
 - `shown()`: what `haicc sources` prints: the folders, then the
   external lines, then each line not read, said.
