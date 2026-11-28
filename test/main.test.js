@@ -198,7 +198,7 @@ test('boot/teardown: what boot/deploy put in place removed, the packages\' scrip
   const s = setup()
   try {
     const work = join(s.home, 'work')
-    for (const d of ['mrepos/boot/.git', 'mrepos/boot/inbox', 'mrepos/local/host/.git', 'mrepos/swarm-1/node-1/.git', 'packages/haiccing', 'kept']) mkdirSync(join(work, d), { recursive: true })
+    for (const d of ['mrepos/boot/.git', 'mrepos/boot/inbox', 'mrepos/local/host/.git', 'mrepos/swarm-1/peer-1/.git', 'packages/haiccing', 'kept']) mkdirSync(join(work, d), { recursive: true })
     writeFileSync(join(work, 'mrepo.json'), '{}')
     mkdirSync(join(work, 'scripts', 'haiccing', 'base-component-haicc'), { recursive: true })
     writeFileSync(join(work, 'scripts', 'haiccing', 'base-component-haicc', 'cluster.haicc'), 'crud/read .\n')
