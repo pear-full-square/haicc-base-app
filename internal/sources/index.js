@@ -6,8 +6,8 @@ import { Failure } from '../failure.js'
 
 // The lists, in haicc's own folder, a line a source. Internal, the
 // install's sources, what the platform reads: folder:<path>, in the order
-// linked. External, where a boundary process (the download) fetches from:
-// github:<org>; never handed inside the platform.
+// linked. External, github:<org>: a record of where each download came
+// from; never handed inside the platform, nothing reads it to act on it yet.
 export const LIST = 'sources.list'
 export const EXTERNAL = 'external.list'
 const FOLDER = 'folder:'

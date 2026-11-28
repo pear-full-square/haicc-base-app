@@ -26,7 +26,7 @@ from, `haiccing`; the component the root mrepo is built from,
 ```
 <home>/                 HAICC_HOME, else ~/.haicc
   sources.list          the install's sources, a folder a line
-  external.list         where the download fetches from, a source a line
+  external.list         where each download came from, a record, a line each
   output.width          the width a record is printed to, when one is set
   work/                 HAICC_WORK, else this: the work folder
     mrepos/boot/        the root mrepo: its inbox and outbox folders

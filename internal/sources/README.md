@@ -4,8 +4,9 @@ Reads and writes the lists of registered sources, and answers the haicc sources 
 
 Two lists, a file each in haicc's own folder, a line a source: the
 internal, `sources.list`, the install's folders (`folder:<path>`), what
-the platform reads; the external, `external.list`, where the download
-fetches from (`github:<org>`), never handed inside. A line in
+the platform reads; the external, `external.list` (`github:<org>`), a
+record of where each download came from, never handed inside; nothing
+reads it to act on it yet. A line in
 `sources.list` that is no folder (an install made before the split kept
 `github:haiccing` there) is not read; `haicc sources` says so, and
 `unlink` takes it off.

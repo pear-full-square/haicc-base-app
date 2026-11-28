@@ -49,8 +49,8 @@ haicc scripts                                   the install's scripts by
                                                 <URI> haicc/file <URI> <name>
                                                 runs one
 haicc sources                                   the sources: the install's
-                                                folders, then where the
-                                                download fetches from
+                                                folders, then where each
+                                                download came from
 haicc sources unlink <folder>|<source>          taken off its list
 haicc sources download <org>...                 an organisation's packages
                                                 fetched over https (the first
