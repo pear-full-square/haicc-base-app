@@ -1,26 +1,33 @@
 # sources
 
-Reads and writes the list of registered sources, and answers the haicc sources command.
+Reads and writes the lists of registered sources, and answers the haicc sources command.
 
-A source is where packages and third-party components come from. The
-list is the file `sources.list` in haicc's own folder, a line a source:
-`folder:<path>`, a local folder, or `github:<org>`, https as the backup.
+Two lists, a file each in haicc's own folder, a line a source: the
+internal, `sources.list`, the install's folders (`folder:<path>`), what
+the platform reads; the external, `external.list` (`github:<org>`), a
+record of where each download came from, never handed inside; nothing
+reads it to act on it yet. A line in
+`sources.list` that is no folder (an install made before the split kept
+`github:haiccing` there) is not read; `haicc sources` says so, and
+`unlink` takes it off.
 
 ## Signature
 
-- `sources(home)`: the list in that folder.
-- `sourcesCommand(home, args, { org, err })`: `haicc sources <args>`;
-  `org` is the organisation, `err` takes a line for stderr.
+- `sources(home)`: the lists in that folder.
+- `sourcesCommand(home, args, { err })`: `haicc sources <args>`; `err`
+  takes a line for stderr.
 
 ## Returns
 
 `sources` returns:
 
-- `list()`: the sources, the folders first in the order they were linked,
-  then the others.
-- `folders()`: the folders' paths.
+- `folders()`: the internal list's folders, in the order linked.
+- `external()`: the external list's lines.
+- `unread()`: the internal list's lines that are no folder.
 - `find(name)`: a file's path in the first folder that holds it, or null.
-- `register(entry)`, `unregister(entry)`: a line added once, or removed.
+- `unregister(entry)`: a line taken off whichever list holds it.
+- `shown()`: what `haicc sources` prints: the folders, then the
+  external lines, then each line not read, said.
 
 `sourcesCommand` returns the lines to print.
 
@@ -28,9 +35,8 @@ list is the file `sources.list` in haicc's own folder, a line a source:
 
 | | |
 |---|---|
-| `haicc sources` | the sources registered |
-| `haicc sources unlink <folder>` | a folder taken off the list |
-| `haicc sources https [<org>...]`, `no-https [<org>...]` | https as the backup for what the folders lack, or not: each organisation named (`github:<org>`); none named, haicc's own for `https`, every one for `no-https` |
+| `haicc sources` | the sources registered: the internal list's folders, then the external list, then what is not read, said |
+| `haicc sources unlink <folder>\|<source>` | taken off its list: a folder (as written, when it is gone), or a line as listed (`github:<org>`, a line not read) |
 | `haicc sources download <org>...` | what the first step does not take: a package alone (`<org>/<package>`) is never downloaded, its organisation is |
 
 ## Errors
@@ -44,6 +50,7 @@ list is the file `sources.list` in haicc's own folder, a line a source:
 
 ## Design
 
-Linking a folder and fetching Bare are not here: they are needed before
-Bare is on the machine, so they belong to the platform's first step. Both
-write the same list.
+Linking a folder and downloading are not here: they are needed before
+Bare is on the machine, so they belong to the platform's first step. They
+write the same lists: a link the internal, a download both (the folder
+it fills, the source it fetched from).

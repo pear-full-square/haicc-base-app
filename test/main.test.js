@@ -6,7 +6,7 @@ import { inboxOf, outboxOf } from 'mrepo-base-request'
 import { mkdtempSync, mkdirSync, rmSync, readdirSync, readFileSync, writeFileSync, existsSync } from 'bare-fs'
 import { tmpdir } from 'bare-os'
 import { join } from 'bare-path'
-import { main, LIST, USAGE, CONFIG, WIDTH } from '../index.js'
+import { main, LIST, EXTERNAL, USAGE, CONFIG, WIDTH } from '../index.js'
 
 function setup () {
   const home = mkdtempSync(join(tmpdir(), 'haicc-app-'))
@@ -107,7 +107,7 @@ test('nothing booted: an mrepo command says so, exit 3; the teardown a repeat, a
     mkdirSync(join(s.home, 'src'))
     writeFileSync(join(s.home, LIST), `folder:${join(s.home, 'src')}\n`)
     t.is(await s.run(['boot/deploy']), 3)
-    t.alike(s.err, [`haicc: no ${CONFIG.org}/${CONFIG.boot}.bundle in the sources (haicc sources link <folder>)`])
+    t.alike(s.err, [`haicc: no ${CONFIG.org}/${CONFIG.boot}.bundle in the sources: the platform reads local folders only (haicc sources download ${CONFIG.org}, or haicc sources link <folder>)`])
     t.absent(existsSync(join(s.home, 'work')), 'nothing written')
   } finally { s.remove() }
 })
@@ -115,11 +115,28 @@ test('nothing booted: an mrepo command says so, exit 3; the teardown a repeat, a
 test('haicc sources: printed a line a source', async (t) => {
   const s = setup()
   try {
-    writeFileSync(join(s.home, LIST), 'folder:/a\ngithub:haiccing\n')
+    writeFileSync(join(s.home, LIST), 'folder:/a\n')
+    writeFileSync(join(s.home, EXTERNAL), 'github:haiccing\n')
     t.is(await s.run(['sources']), 0)
     t.alike(s.out, ['folder:/a', 'github:haiccing'])
     t.is(await s.run(['sources', 'download', 'haiccing/base-package-runtime']), 3)
     t.alike(s.err, ['haicc: haiccing/base-package-runtime: a package is not downloaded alone; its organisation is (haicc sources download haiccing)'], 'said once, exit 3')
+  } finally { s.remove() }
+})
+
+test('boot/deploy: the boot handed the internal list\'s folders only, in order; a github: line in either list never handed', async (t) => {
+  const s = setup()
+  try {
+    // the boot program a stand-in: a script run by sh, writing what it is handed
+    const a = join(s.home, 'a'); const b = join(s.home, 'b')
+    mkdirSync(join(a, CONFIG.org), { recursive: true }); mkdirSync(b)
+    const got = join(s.home, 'handed')
+    writeFileSync(join(a, CONFIG.org, `${CONFIG.boot}.bundle`), `printf '%s\\n' "$@" > '${got}'\n`)
+    writeFileSync(join(s.home, LIST), `github:haiccing\nfolder:${a}\nfolder:${b}\n`)
+    writeFileSync(join(s.home, EXTERNAL), 'github:splectral\n')
+    const code = await main(['boot/deploy'], { env: { HAICC_HOME: s.home }, bare: '/bin/sh', io: { out: () => {}, err: () => {}, stdio: 'ignore' } })
+    t.is(code, 0, 'the stand-in ran, exit 0')
+    t.alike(readFileSync(got, 'utf8').split('\n').filter(Boolean), [`--work=${s.work}`, `--sources=folder:${a}`, `--sources=folder:${b}`], 'handed: the work folder, the folders in order; no github: line')
   } finally { s.remove() }
 })
 
@@ -198,7 +215,7 @@ test('boot/teardown: what boot/deploy put in place removed, the packages\' scrip
   const s = setup()
   try {
     const work = join(s.home, 'work')
-    for (const d of ['mrepos/boot/.git', 'mrepos/boot/inbox', 'mrepos/local/host/.git', 'mrepos/swarm-1/node-1/.git', 'packages/haiccing', 'kept']) mkdirSync(join(work, d), { recursive: true })
+    for (const d of ['mrepos/boot/.git', 'mrepos/boot/inbox', 'mrepos/local/host/.git', 'mrepos/swarm-1/peer-1/.git', 'packages/haiccing', 'kept']) mkdirSync(join(work, d), { recursive: true })
     writeFileSync(join(work, 'mrepo.json'), '{}')
     mkdirSync(join(work, 'scripts', 'haiccing', 'base-component-haicc'), { recursive: true })
     writeFileSync(join(work, 'scripts', 'haiccing', 'base-component-haicc', 'cluster.haicc'), 'crud/read .\n')
@@ -220,15 +237,15 @@ test('the install\'s scripts: haicc scripts lists them; haicc/file <URI> <name> 
     // in the work folder's scripts/: a package's placed by a deploy, the user's beside them
     mkdirSync(join(s.work, 'scripts', 'haiccing', 'base-component-haicc'), { recursive: true })
     writeFileSync(join(s.work, 'scripts', 'check.haicc'), 'crud/read .\n')
-    writeFileSync(join(s.work, 'scripts', 'haiccing', 'base-component-haicc', 'node.haicc'), 'service/initialise\nservice/start\n')
+    writeFileSync(join(s.work, 'scripts', 'haiccing', 'base-component-haicc', 'peer.haicc'), 'service/initialise\nservice/start\n')
     t.is(await s.run(['scripts']), 0)
-    t.alike(s.out, ['check', 'haiccing/base-component-haicc/node'], 'the user\'s, then each package\'s, by name')
+    t.alike(s.out, ['check', 'haiccing/base-component-haicc/peer'], 'the user\'s, then each package\'s, by name')
     mkdirSync(join(s.root, 'inbox'), { recursive: true }); mkdirSync(join(s.root, 'outbox'), { recursive: true })
     let a = answerAll(s.root, [{ message: 'Ran 1 line at ..' }])
     t.is(await s.run(['host', 'haicc/file', '.', 'check']), 0, 'exit 0')
     t.alike(await a.all, ['haicc host haicc/script . "crud/read .\n"'], 'sent as haicc/script, its lines read here: no mrepo reads a file of the machine')
     a = answerAll(s.root, [{ message: 'Ran 2 lines at swarms/swarm-1.' }])
-    t.is(await s.run(['.', 'haicc/file', 'swarms/swarm-1', 'haiccing/base-component-haicc/node']), 0)
+    t.is(await s.run(['.', 'haicc/file', 'swarms/swarm-1', 'haiccing/base-component-haicc/peer']), 0)
     t.alike(await a.all, ['haicc/script swarms/swarm-1 "service/initialise\nservice/start\n"'], 'a package\'s, by its org and package; its URI where the lines run')
     a.stop()
     t.is(await s.run(['host', 'haicc/file', '.', 'nope']), 3, 'no such script: exit 3')

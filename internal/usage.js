@@ -48,24 +48,25 @@ haicc scripts                                   the install's scripts by
                                                 yours (<name>.haicc); haicc
                                                 <URI> haicc/file <URI> <name>
                                                 runs one
-haicc sources                                   the sources registered
-haicc sources unlink <folder>
+haicc sources                                   the sources: the install's
+                                                folders, then where each
+                                                download came from
+haicc sources unlink <folder>|<source>          taken off its list
 haicc sources download <org>...                 an organisation's packages
                                                 fetched over https (the first
                                                 step's, before the app)
-haicc sources https | no-https [<org>...]       https as the backup, or not
 
   haicc boot/deploy
   haicc . boot/deploy host haiccing/base-component-haicc
   haicc host service/stop
   haicc host service/start
-  haicc host boot/deploy node-1 haiccing/base-component-haicc
-  haicc host haicc node-1 info/get
+  haicc host boot/deploy peer-1 haiccing/base-component-haicc
+  haicc host haicc peer-1 info/get
   haicc host crud/read . --flags log=verbose
-  haicc host --flags log=debug -- haicc node-1 crud/read .
+  haicc host --flags log=debug -- haicc peer-1 crud/read .
   haicc . crud/read "done/*[value/form/protocol='boot']" --flags layer=request
   haicc . boot/deploy workbench haiccing/base-solution-workbench
-  haicc host boot/teardown node-1
+  haicc host boot/teardown peer-1
   haicc . boot/teardown host
   haicc boot/teardown
 

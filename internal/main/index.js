@@ -30,7 +30,7 @@ export async function main (argv, { env = {}, bare = os.execPath(), io = CONSOLE
     const c = command(argv)
     if (c.kind === 'usage') { io.out(USAGE); return 0 }
     if (c.kind === 'sources') {
-      for (const line of sourcesCommand(home, c.args, { org: CONFIG.org, err: io.err })) io.out(line)
+      for (const line of sourcesCommand(home, c.args, { err: io.err })) io.out(line)
       return 0
     }
     if (c.kind === 'scripts') {

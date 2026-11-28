@@ -14,6 +14,7 @@ The tests of haicc-base-app, a section per file, each test by its name.
 - the usage; not a command: exit 2, said on stderr
 - nothing booted: an mrepo command says so, exit 3; the teardown a repeat, a warning, exit 0; a deploy without the boot component in the sources
 - haicc sources: printed a line a source
+- boot/deploy: the boot handed the internal list's folders only, in order; a github: line in either list never handed
 - a command for the mrepos: what it says printed, with what is attached; the whole request, or its record as stored, by a flag; failed, exit 1; not returned, exit 5; none in time, exit 4
 - boot/teardown: what boot/deploy put in place removed, the packages' scripts too, nothing else; no runtime running: none stopped; twice: a repeat
 - the install's scripts: haicc scripts lists them; haicc/file <URI> <name> reads one here and sends it as haicc/script
@@ -32,5 +33,5 @@ The tests of haicc-base-app, a section per file, each test by its name.
 
 ## `sources.test.js`
 
-- sources: the folders first, in the order linked, then https; a file in the first folder that holds it
-- haicc sources: the list, unlink, https and no-https, download
+- sources: two lists, the internal its folders in the order linked, the external apart; a line not read said; a file in the first folder that holds it
+- haicc sources: the lists, unlink from either, https and no-https gone, download
